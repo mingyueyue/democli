@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaojiaya.mapper.ValidateMapper">
+
+    <select id="getTokenAndUserInfo" resultType="UserDTO">
+SELECT t.`user_id`,t.`user_name`,t.`user_account`,t.`user_password`,
+t.`create_time`,t.`update_time`,t.`role_id`,t.`group_id`,
+t.`delete_state`,t.`user_note` FROM `tb_user` t
+LEFT JOIN `tb_login` tl ON tl.`user_id` = t.`user_id`
+WHERE tl.`access_token` = #{token}
+    </select>
+
+    <select id="isExistThisAuth" resultType="String">
+        SELECT COUNT(1) FROM `tb_rbac` t
+LEFT JOIN `tb_authority` ta ON t.`auth_id` = ta.`auth_id`
+WHERE t.`role_id` = #{typeId} AND ta.`url_interface` LIKE concat(concat('%',#{url}),'%')
+
+    </select>
+</mapper>

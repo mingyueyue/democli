@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+    <!-- 配置包扫描 -->
+    <context:component-scan base-package="com.xiaojiaya.controller,com.xiaojiaya.aop"/>
+    <!--配置视图解析器-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!--让切面生效,因为切面是使用在-->
+    <aop:aspectj-autoproxy proxy-target-class="true"></aop:aspectj-autoproxy>
+    <!-- 配置参数验证信息 -->
+    <mvc:annotation-driven validator="validatorFactoryBean"></mvc:annotation-driven>
+    <mvc:default-servlet-handler/>
+
+    <!-- 配置参数验证方法，使用hibernate-validate -->
+    <bean id="validatorFactoryBean" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+        <property name="providerClass" value="org.hibernate.validator.HibernateValidator"/>
+    </bean>
+
+    <!-- 通过mvc:resources设置静态资源，这样servlet就会处理这些静态资源，而不通过控制器 -->
+    <!-- 设置不过滤内容，比如:css,jquery,img 等资源文件 -->
+    <!--所有引用js的文件，从laydate中找-->
+    <mvc:resources mapping="/js/**" location="/js/"/>
+
+    <!--拦截器配置-->
+    <mvc:interceptors>
+        <!-- 配置一个拦截器，对token和用户权限进行判断 -->
+        <mvc:interceptor>
+            <mvc:mapping path="/sys/**"/>
+            <mvc:exclude-mapping path="/sys/login"/>
+            <!--在这里使用<bean>相当于手动构建，所以在拦截器中不用添加@Component 等注解-->
+            <bean id="tokenInterceptor" class="com.xiaojiaya.interceptor.TokenInterceptor"/>
+        </mvc:interceptor>
+
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <bean id="authInterceptor" class="com.xiaojiaya.interceptor.AuthInterceptor"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+    <!-- 配置文件上传类型解析器 multipartResolver 依赖：org/apache/commons/fileupload/FileItemFactory-->
+    <!--<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">-->
+    <!--&lt;!&ndash; 设置上传文件最大尺寸，单位为B &ndash;&gt;-->
+    <!--<property name="maxUploadSize" value="5242880"/>-->
+    <!--</bean>-->
+
+</beans>

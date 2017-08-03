@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaojiaya.mapper.UserMapper">
+
+
+    <sql id="userInfoSql">
+       SELECT `user_id`,`user_name`,`user_account`,`user_password`,
+      `create_time`,`update_time`,`role_id`,`group_id`,`delete_state`,`user_note`
+      FROM `tb_user`
+    </sql>
+
+    <select id="findUserByAccountAndPassword" resultType="UserShowDTO">
+        <include refid="userInfoSql"/>
+        WHERE `user_account` = #{account} AND `user_password` = #{password}
+    </select>
+
+    <select id="findUserById" parameterType="String" resultType="UserDTO">
+        <include refid="userInfoSql"/>
+        WHERE `user_id` = #{userId}
+    </select>
+
+    <select id="findUserByParams" resultType="UserDTO">
+        <include refid="userInfoSql"/>
+        <where>
+            <if test="account!=null and account!=''">`user_account` LIKE ${%account%}</if>
+            <if test="roleType!=null and roleType!=''">AND `role_type` = #{roleType}</if>
+            <if test="userId!=null and userId!=''">AND `user_id` = #{userId}</if>
+        </where>
+        <if test="page>=0 and size>0">
+            LIMIT #{page},#{size}
+        </if>
+    </select>
+
+    <select id="findUserAll" resultType="UserDTO">
+        <include refid="userInfoSql"/>
+    </select>
+
+    <insert id="createUser" parameterType="UserCreateDTO">
+        INSERT INTO `lab_user` (`user_id`,`user_name`,`user_account`,
+          `user_password`,`create_time`,`update_time`,`user_state`,
+          `create_user_id`,`role_type`,`user_note`,`can_forbid`,`can_delete`)
+        VALUE (#{userId},#{userName},#{userAccount},#{userPassword},#{createTime},#{updateTime},#{userState},
+                #{createUserId},#{roleType},#{userNote},#{canForbid},#{canDelete})
+    </insert>
+
+    <update id="updateUser" parameterType="UserUpdateDTO">
+        UPDATE `lab_user`
+        <set>
+            `update_time` = #{updateTime},
+            <if test="userName!=null and userName!=''">`user_name` = #{userName},</if>
+            <if test="userAccount!=null and userAccount!=''">`user_account` = #{userAccount},</if>
+            <if test="userPassword!=null and userPassword!=''">`user_password` = #{userPassword},</if>
+            <if test="userState!=null and userState!=''">`user_state` = #{userState},</if>
+        </set>
+        WHERE `user_id` = #{userId}
+    </update>
+
+    <delete id="deleteUser" parameterType="String">
+        DELETE FROM `lab_user` WHERE `user_id` = #{userId}
+    </delete>
+
+    <select id="userIsExistByAccount" parameterType="String" resultType="String">
+        SELECT COUNT(1) FROM `lab_user` WHERE `user_account` = #{userAccount}
+    </select>
+
+    <select id="userIsExistByUserId" parameterType="String" resultType="String">
+        SELECT COUNT(1) FROM `lab_user` WHERE `user_id` = #{userId}
+    </select>
+
+</mapper>
